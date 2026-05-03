@@ -1,11 +1,7 @@
-# Estimator complexity for the $\mathbb{F}_{4}$ OLEAGE PCG
+# Estimator complexity for the QA-SD problem
 
-Python tool to select parameters for the $\mathbb{F}_4$ OLEAGE Pseudorandom
-Correlation Generator (PCG). See the
-[paper](https://eprint.iacr.org/2024/429.pdf) for details.
-
-A prototype [implementation](https://github.com/sachaservan/FOLEAGE-PCG)
-of the PCG in C is also available.
+Python tool to select parameters for the quasi-abelian syndrom decoding problem and its stationary variant.
+[paper](https://eprint.iacr.org/2024/429.pdf) for details. Adapted by the authors of [[LXXY+26]](https://eprint.iacr.org/2026/196.pdf) to include the newer attack from [[BDHV25]](https://eprint.iacr.org/2025/892.pdf) and the stationary case.
 
 ## Setup
 
