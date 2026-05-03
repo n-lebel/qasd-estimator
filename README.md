@@ -1,7 +1,7 @@
-# Estimator complexity for the QA-SD problem
+# Security estimator for the QA-SD problem
 
-Python tool to select parameters for the quasi-abelian syndrom decoding problem and its stationary variant.
-[paper](https://eprint.iacr.org/2024/429.pdf) for details. Adapted by the authors of [[LXXY+26]](https://eprint.iacr.org/2026/196.pdf) to include the newer attack from [[BDHV25]](https://eprint.iacr.org/2025/892.pdf) and the stationary case.
+Python tool to select parameters for the quasi-abelian syndrome decoding problem and its stationary variant.
+[paper](https://eprint.iacr.org/2024/429.pdf) for details. Adapted by the authors of [[LXXY+26]](https://eprint.iacr.org/2026/196.pdf) to cover the stationary variant and include the newer attack from [[BDHV25]](https://eprint.iacr.org/2025/892.pdf).
 
 ## Setup
 
