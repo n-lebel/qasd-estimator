@@ -69,7 +69,9 @@ def expect_cost_form() -> None:
         result, stdout, error = _run_with_capture(estimator.expect_cost, **kwargs)
 
     if error is None and result is not None:
-        st.metric("Bits of security", f"{result:.4f}")
+        m1, m2 = st.columns(2)
+        m1.metric("Bits of security", f"{result:.4f}")
+        m2.metric("Complexity (individual DPF calls)", f"{(int(c) * int(t)) ** 2:,}")
     render_output(stdout, error)
 
 
@@ -129,10 +131,13 @@ def find_t_form() -> None:
         r=kwargs.get("r", 1),
         d=kwargs.get("d"),
     )
+    complexity = (int(kwargs["c"]) * int(t_result)) ** 2
+    m1, m2 = st.columns(2)
     if bits_error is None and bits is not None:
-        st.metric("Required t", f"{int(t_result)} ({bits:.2f} bits)")
+        m1.metric("Required t", f"{int(t_result)} ({bits:.2f} bits)")
     else:
-        st.metric("Required t", f"{int(t_result)}")
+        m1.metric("Required t", f"{int(t_result)}")
+    m2.metric("Complexity (individual DPF calls)", f"{complexity:,}")
     render_output(stdout + bits_stdout, bits_error)
 
 
