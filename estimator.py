@@ -313,7 +313,7 @@ def Stern_opt(
     else:
         p_max, ell_max = 15, 100
     for p in range(1, min(t + 1, p_max)):
-        for ell in range(1, min(n - k + 1, ell_max)):
+        for ell in range(1, min(n - k, ell_max)):
             T_cur = Stern(t, k, n, q, p, ell)
             if T_cur < T_min:
                 T_min, p_min, ell_min = T_cur, p, ell

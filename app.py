@@ -149,6 +149,19 @@ def main() -> None:
         "Adapted by the authors of [[LLXY+26]](https://eprint.iacr.org/2026/196.pdf) to include the newer attack from [[BDHV25]](https://eprint.iacr.org/2025/892.pdf).\n"
         "Original code: [FOLEAGE PCG estimator](https://github.com/mbombar/estimator_folding). All credits to the aforementioned contributors.\n"
     )
+    noise = st.radio(
+        "Noise distribution",
+        ["Regular", "Uniform"],
+        horizontal=True,
+        help=(
+            "Regular: the error vector is split into c blocks of length d^s, each with "
+            "exactly t errors. The estimator adds a provable lower-bound penalty for "
+            "putative attacks exploiting the block structure (csplit=True). "
+            "Uniform: the error has weight c·t spread arbitrarily over the whole "
+            "code, with no block structure (csplit=False)."
+        ),
+    )
+    estimator.set_aggressivity(csplit_=(noise == "Regular"))
     mode = st.radio(
         "Mode",
         ["Estimate cost (expect_cost)", "Find required t (find_t)"],
