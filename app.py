@@ -37,11 +37,16 @@ def expect_cost_form() -> None:
         c = col1.number_input("c (compression factor)", min_value=2, value=5, step=1)
         t = col2.number_input("t (errors per block)", min_value=1, value=14, step=1)
         s = col1.number_input("s (log group size)", min_value=1, value=16, step=1)
-        q = col2.number_input("q (field size, prime power)", min_value=2, value=4, step=1)
+        q_bits = col2.number_input(
+            "q_bits (bit size of prime field, uses q = 2^q_bits − 1)",
+            min_value=2,
+            value=107,
+            step=1,
+        )
 
         with st.expander("Advanced"):
             r = st.number_input("r (SSD repetitions)", min_value=1, value=1, step=1)
-            d_str = st.text_input("d (polynomial degree, blank = q-1)", value="")
+            d_str = st.text_input("d (group degree, blank = 2)", value="")
             offset = st.number_input("offset (folding offset)", value=0, step=1)
             verbose = st.checkbox("Verbose output", value=True)
         submit = st.form_submit_button("Run")
@@ -53,7 +58,7 @@ def expect_cost_form() -> None:
         "c": int(c),
         "t": int(t),
         "s": int(s),
-        "q": int(q),
+        "q_bits": int(q_bits),
         "r": int(r),
         "offset": int(offset),
         "verbose": verbose,
@@ -80,7 +85,12 @@ def find_t_form() -> None:
         col1, col2 = st.columns(2)
         c = col1.number_input("c (compression factor)", min_value=2, value=5, step=1)
         s = col2.number_input("s (log group size)", min_value=1, value=15, step=1)
-        q = col1.number_input("q (field size, prime power)", min_value=2, value=4, step=1)
+        q_bits = col1.number_input(
+            "q_bits (bit size of prime field, uses q = 2^q_bits − 1)",
+            min_value=2,
+            value=107,
+            step=1,
+        )
         security_parameter = col2.number_input(
             "Target security (bits)", min_value=1, value=128, step=1
         )
@@ -88,7 +98,7 @@ def find_t_form() -> None:
         with st.expander("Advanced"):
             t_start = st.text_input("t (starting lower bound, blank = auto)", value="")
             r = st.number_input("r (SSD repetitions)", min_value=1, value=1, step=1)
-            d_str = st.text_input("d (polynomial degree, blank = q-1)", value="")
+            d_str = st.text_input("d (group degree, blank = 2)", value="")
             verbose = st.checkbox("Verbose output", value=True)
         submit = st.form_submit_button("Run")
 
@@ -98,7 +108,7 @@ def find_t_form() -> None:
     kwargs: dict[str, Any] = {
         "c": int(c),
         "s": int(s),
-        "q": int(q),
+        "q_bits": int(q_bits),
         "security_parameter": int(security_parameter),
         "r": int(r),
         "verbose": verbose,
@@ -122,14 +132,17 @@ def find_t_form() -> None:
         render_output(stdout, error)
         return
 
+    expect_kwargs: dict[str, Any] = {
+        "c": kwargs["c"],
+        "t": int(t_result),
+        "s": kwargs["s"],
+        "q_bits": kwargs["q_bits"],
+        "r": kwargs.get("r", 1),
+    }
+    if "d" in kwargs:
+        expect_kwargs["d"] = kwargs["d"]
     bits, bits_stdout, bits_error = _run_with_capture(
-        estimator.expect_cost,
-        c=kwargs["c"],
-        t=int(t_result),
-        s=kwargs["s"],
-        q=kwargs["q"],
-        r=kwargs.get("r", 1),
-        d=kwargs.get("d"),
+        estimator.expect_cost, **expect_kwargs
     )
     complexity = (int(kwargs["c"]) * int(t_result)) ** 2
     m1, m2 = st.columns(2)

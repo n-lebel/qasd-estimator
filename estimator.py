@@ -66,6 +66,13 @@ def _is_prime_power(n: int) -> bool:
     return True
 
 
+def _q_from_bits(q_bits: int) -> int:
+    """Mersenne-shaped representative for a bit-sized prime field: 2^q_bits - 1."""
+    if q_bits < 2:
+        raise ValueError(f"q_bits must be >= 2 (got {q_bits})")
+    return (1 << q_bits) - 1
+
+
 def _gaussian_binomial(n: int, k: int, q: int) -> int:
     """[n choose k]_q = prod_{i=0}^{k-1} (q^(n-i) - 1) / (q^(i+1) - 1)."""
     if k < 0 or k > n:
@@ -573,11 +580,14 @@ def estimator_init(
     """Find the minimal pre-folding weight that already gives target security."""
     if d is None:
         d = q - 1
+    t_cap = c * d ** s  # Prange saturates beyond the code length; cap the doubling loop.
     t = 1
     if prange_c_split_doom(c, t, s, q, d) > target_security:
         return t
-    while prange_c_split_doom(c, t, s, q, d) < target_security:
+    while t < t_cap and prange_c_split_doom(c, t, s, q, d) < target_security:
         t *= 2
+    if t >= t_cap:
+        return t_cap
     lo, hi = t // 2, t
     while lo <= hi:
         t = (lo + hi) // 2
@@ -737,20 +747,21 @@ def expect_cost(
     c: int,
     t: int,
     s: int,
-    q: int = 4,
+    q_bits: int = 107,
     r: int = 1,
-    d: int | None = None,
+    d: int = 2,
     ISD_l: dict[str, list[float]] | None = None,
     verbose: bool = False,
     offset: int = 0,
 ) -> float:
-    """Expected bit-cost of the folding attack."""
-    if d is None:
-        d = q - 1
-    if not _is_prime_power(q):
-        raise ValueError("Field size q must be a prime power.")
+    """Expected bit-cost of the folding attack.
+
+    `q_bits` is the bit size of the prime field; the estimator uses the
+    Mersenne-shaped representative q = 2^q_bits - 1 internally.
+    """
+    q = _q_from_bits(q_bits)
     if (q - 1) % d != 0:
-        raise ValueError("d should divide q-1.")
+        raise ValueError(f"d={d} must divide q-1 = 2^{q_bits} - 2.")
     R = 1 - 1 / c
     gv = GV(R, q)
 
@@ -854,32 +865,29 @@ def find_t(
     s: int,
     t: int | None = None,
     security_parameter: int = 128,
-    q: int = 4,
+    q_bits: int = 107,
     r: int = 1,
-    d: int | None = None,
+    d: int = 2,
     verbose: bool = False,
 ) -> int:
-    """Smallest t reaching the target security level for the given (c, s, q, d)."""
-    if d is None:
-        d = q - 1
-    if not _is_prime_power(q):
-        raise ValueError("Field size q must be a prime power.")
+    """Smallest t reaching the target security level for the given (c, s, q_bits, d)."""
+    q = _q_from_bits(q_bits)
     if (q - 1) % d != 0:
-        raise ValueError("d should divide q-1.")
+        raise ValueError(f"d={d} must divide q-1 = 2^{q_bits} - 2.")
     if t is None:
-        t = refine_t(q, c, s)
+        t = refine_t(q, c, s, d=d)
     if verbose:
         print(f"Starting from t={t}.")
     ISD_l = prepare_ISD_list(c, t, s, q, d, ISD_l=None, verbose=verbose)
-    cost = expect_cost(c, t, s, q, r, d, ISD_l, verbose)
+    cost = expect_cost(c, t, s, q_bits, r, d, ISD_l, verbose)
     while cost < security_parameter:
         if verbose:
             print(f"\nt={t} --> {cost} bits. Too small. Testing t={t+1}.\n\n")
         t += 1
         ISD_l = prepare_ISD_list(c, t, s, q, d, ISD_l, verbose=verbose)
-        cost = expect_cost(c, t, s, q, r, d, ISD_l, verbose=verbose)
+        cost = expect_cost(c, t, s, q_bits, r, d, ISD_l, verbose=verbose)
     print(
-        f"For s={s}, c={c}, q={q}, d={d}, we need t={t} for a "
+        f"For s={s}, c={c}, q_bits={q_bits}, d={d}, we need t={t} for a "
         f"security estimated to {cost} bits"
     )
     return t

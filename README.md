@@ -15,16 +15,21 @@ pip install -r requirements.txt
 The estimator is exposed as the pure-Python `estimator` module — no SageMath
 required.
 
+The prime field is specified by its **bit size** via `q_bits`. The estimator
+uses the Mersenne-shaped representative `q = 2^q_bits − 1` internally (so
+`d = 2` always satisfies the `d | q − 1` requirement); the lower-order bits of
+`q` do not affect the security estimate.
+
 ```python
 >>> import estimator
->>> estimator.expect_cost(c=5, t=14, s=16, q=4, verbose=True)
+>>> estimator.expect_cost(c=5, t=14, s=16, q_bits=107, verbose=True)
 [...]
 Computing the probability that the folded error has weight 14
-Prange --> 181.08545120625692
-Lee-Brickell --> 169.5462959218013
-Stern --> 175.78460971203532
-Optimized_Stern --> 164.2579898159922
-Folded code has length 3645
+Prange --> ...
+Lee-Brickell --> ...
+Stern --> ...
+Optimized_Stern --> ...
+Folded code has length ...
 [...]
 ```
 
@@ -32,9 +37,9 @@ To get a suitable number of errors to achieve a specific security level,
 call `find_t`:
 
 ```python
->>> estimator.find_t(c=5, s=15, q=4, security_parameter=128, verbose=True)
+>>> estimator.find_t(c=5, s=15, q_bits=107, security_parameter=128, verbose=True)
 [...]
-For s=15, c=5, we need t=12 for a security estimated to 128.83 bits
+For s=15, c=5, q_bits=107, d=2, we need t=... for a security estimated to ... bits
 ```
 
 ## Levels of aggressivity in parameter selection
